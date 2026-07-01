@@ -738,6 +738,115 @@ model Dashboard {
   @@map("dashboard")
 }
 
+// Decoupled RBAC engine (@teable/authz) storage: one row per (role, action)
+// pair, replacing the hardcoded RolePermission matrix in @teable/core with
+// data that can be edited without a code change.
+model RolePolicy {
+  id               String    @id @default(cuid())
+  roleName         String    @map("role_name")
+  scope            String    @default("global") @map("scope")
+  action           String    @map("action")
+  allowed          Boolean   @default(true) @map("allowed")
+  isSystem         Boolean   @default(false) @map("is_system")
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  lastModifiedBy   String?   @map("last_modified_by")
+
+  @@unique([roleName, scope, action])
+  @@index([roleName, scope])
+  @@map("role_policy")
+}
+
+// Role ranking for the decoupled RBAC engine, used to merge multiple role
+// grants into a single "highest privilege" role (equivalent to the old
+// RoleLevel array), and to protect system roles from mutation via the API.
+model RoleDefinition {
+  id               String    @id @default(cuid())
+  name             String    @unique
+  rank             Int
+  isSystem         Boolean   @default(false) @map("is_system")
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  lastModifiedBy   String?   @map("last_modified_by")
+
+  @@map("role_definition")
+}
+
+// Decoupled automation engine (@teable/automation-engine) storage.
+model Workflow {
+  id               String    @id @default(cuid())
+  baseId           String    @map("base_id")
+  name             String
+  description      String?
+  isActive         Boolean   @default(false) @map("is_active")
+  triggerType      String    @map("trigger_type")
+  triggerConfig    String    @map("trigger_config")
+  conditionConfig  String?   @map("condition_config")
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  lastModifiedBy   String?   @map("last_modified_by")
+  deletedTime      DateTime? @map("deleted_time")
+
+  actions WorkflowAction[]
+  runs    WorkflowRun[]
+
+  @@index([baseId])
+  @@index([triggerType])
+  @@map("workflow")
+}
+
+model WorkflowAction {
+  id               String    @id @default(cuid())
+  workflowId       String    @map("workflow_id")
+  order            Int       @default(0)
+  actionType       String    @map("action_type")
+  actionConfig     String    @map("action_config")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@map("workflow_action")
+}
+
+model WorkflowRun {
+  id               String    @id @default(cuid())
+  workflowId       String    @map("workflow_id")
+  status           String    @default("pending")
+  triggerEventName String?   @map("trigger_event_name")
+  triggerPayload   String?   @map("trigger_payload")
+  error            String?
+  startedTime      DateTime? @map("started_time")
+  finishedTime     DateTime? @map("finished_time")
+  createdTime      DateTime  @default(now()) @map("created_time")
+
+  workflow   Workflow            @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  actionRuns WorkflowActionRun[]
+
+  @@index([workflowId, createdTime])
+  @@map("workflow_run")
+}
+
+model WorkflowActionRun {
+  id               String    @id @default(cuid())
+  runId            String    @map("run_id")
+  workflowActionId String    @map("workflow_action_id")
+  status           String    @default("pending")
+  output           String?
+  error            String?
+  startedTime      DateTime? @map("started_time")
+  finishedTime     DateTime? @map("finished_time")
+
+  run WorkflowRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+  @@map("workflow_action_run")
+}
+
 model Comment {
   id       String  @id @default(cuid())
   tableId  String  @map("table_id")

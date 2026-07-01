@@ -1,12 +1,14 @@
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { authConfig, type IAuthConfig } from '../../configs/auth.config';
+import { AuthzModule } from '../authz/authz.module';
 import { PermissionGuard } from './guard/permission.guard';
 import { PermissionService } from './permission.service';
 
 @Global()
 @Module({
   imports: [
+    AuthzModule,
     JwtModule.registerAsync({
       useFactory: (config: IAuthConfig) => ({
         secret: config.jwt.secret,

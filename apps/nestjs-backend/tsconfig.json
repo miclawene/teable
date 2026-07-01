@@ -16,6 +16,8 @@
     "outDir": "./dist",
     "paths": {
       "@teable/core": ["../../packages/core/src"],
+      "@teable/authz": ["../../packages/authz/src"],
+      "@teable/automation-engine": ["../../packages/automation-engine/src"],
       "@teable/openapi": ["../../packages/openapi/src"],
       "@teable/db-main-prisma": ["../../packages/db-main-prisma/src"],
       "@teable/db-data-prisma": ["../../packages/db-data-prisma/src"],

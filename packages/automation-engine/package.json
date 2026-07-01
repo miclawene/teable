@@ -1,0 +1,47 @@
+{
+  "name": "@teable/automation-engine",
+  "version": "1.10.0",
+  "license": "MIT",
+  "homepage": "https://teable.ai",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teableio/teable",
+    "directory": "packages/automation-engine"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "@teable/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "clean": "rimraf ./dist ./build ./tsconfig.tsbuildinfo ./tsconfig.build.tsbuildinfo ./node_modules/.cache ./.eslintcache",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx,.cjs,.mjs --cache --cache-location ../../.cache/eslint/automation-engine.eslintcache",
+    "test": "run test-unit",
+    "test-unit": "vitest run --silent",
+    "test-unit-cover": "pnpm test-unit --coverage",
+    "typecheck": "tsc --project ./tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@teable/eslint-config-bases": "workspace:^",
+    "@types/node": "22.18.0",
+    "@vitest/coverage-v8": "4.0.17",
+    "eslint": "8.57.0",
+    "rimraf": "5.0.5",
+    "typescript": "5.4.3",
+    "vitest": "4.0.17"
+  }
+}

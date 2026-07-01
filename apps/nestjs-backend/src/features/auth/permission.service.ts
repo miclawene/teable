@@ -8,7 +8,6 @@ import {
   ShareViewEditPermissions,
   TemplatePermissions,
   ViewType,
-  getPermissions,
   isAnonymous,
 } from '@teable/core';
 import { PrismaService } from '@teable/db-main-prisma';
@@ -18,6 +17,7 @@ import { ClsService } from 'nestjs-cls';
 import { CustomHttpException, TemplateAppTokenNotAllowedException } from '../../custom.exception';
 import type { IClsStore } from '../../types/cls';
 import { getMaxLevelRole } from '../../utils/get-max-level-role';
+import { PolicyEngineService } from '../authz/policy-engine.service';
 import { CollaboratorModel } from '../model/collaborator';
 import { TemplateModel } from '../model/template';
 
@@ -57,7 +57,8 @@ export class PermissionService {
     private readonly cls: ClsService<IClsStore>,
     private readonly collaboratorModel: CollaboratorModel,
     private readonly templateModel: TemplateModel,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly policyEngineService: PolicyEngineService
   ) {}
 
   private getDepartmentIds() {
@@ -356,7 +357,7 @@ export class PermissionService {
       );
     }
     this.cls.set('spaceId', spaceId);
-    return getPermissions(role);
+    return this.policyEngineService.getPermissions(role) as Action[];
   }
 
   async getPermissionByBaseId(baseId: string, includeInactiveResource?: boolean) {
@@ -370,7 +371,7 @@ export class PermissionService {
         });
         return TemplatePermissions;
       } else {
-        return getPermissions('owner');
+        return this.policyEngineService.getPermissions(Role.Owner) as Action[];
       }
     }
     const role = await this.getRoleByBaseId(baseId);
@@ -389,8 +390,10 @@ export class PermissionService {
         }
       );
     }
-    const basePermissions = role ? getPermissions(role) : [];
-    const spacePermissions = spaceRole ? getPermissions(spaceRole) : [];
+    const basePermissions = (role ? this.policyEngineService.getPermissions(role) : []) as Action[];
+    const spacePermissions = (
+      spaceRole ? this.policyEngineService.getPermissions(spaceRole) : []
+    ) as Action[];
     // In the presence of an organization, a user can have concurrent permissions at both space and base levels,
     // requiring a merge operation to determine the highest applicable permission level
     return union(basePermissions, spacePermissions);
@@ -648,7 +651,9 @@ export class PermissionService {
     // When allowEdit is enabled and user is logged in, grant editor-level permissions
     // excluding invite/share/privacy-sensitive actions
     if (baseShare.allowEdit && !this.isAnonymous()) {
-      return getPermissions(Role.Editor).filter((p) => !shareExcludedPermissions.has(p));
+      return this.policyEngineService
+        .getPermissions(Role.Editor)
+        .filter((p) => !shareExcludedPermissions.has(p)) as Action[];
     }
 
     // Otherwise return template permissions (read-only), with record|copy if allowCopy is enabled

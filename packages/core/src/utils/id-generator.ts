@@ -19,6 +19,11 @@ export enum IdPrefix {
   WorkflowTrigger = 'wtr',
   WorkflowAction = 'wac',
   WorkflowDecision = 'wde',
+  WorkflowRun = 'wru',
+  WorkflowActionRun = 'war',
+
+  RolePolicy = 'rpo',
+  RoleDefinition = 'rdf',
 
   User = 'usr',
   Account = 'aco',
@@ -141,6 +146,22 @@ export function generateWorkflowActionId() {
 
 export function generateWorkflowDecisionId() {
   return IdPrefix.WorkflowDecision + getRandomString(16);
+}
+
+export function generateWorkflowRunId() {
+  return IdPrefix.WorkflowRun + getRandomString(16);
+}
+
+export function generateWorkflowActionRunId() {
+  return IdPrefix.WorkflowActionRun + getRandomString(16);
+}
+
+export function generateRolePolicyId() {
+  return IdPrefix.RolePolicy + getRandomString(16);
+}
+
+export function generateRoleDefinitionId() {
+  return IdPrefix.RoleDefinition + getRandomString(16);
 }
 
 export function generateUserId() {
