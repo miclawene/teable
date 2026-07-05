@@ -146,7 +146,13 @@ COPY --from=post-builder --link --chown=nodejs:nodejs /app/apps/nestjs-backend/n
 COPY --from=post-builder --link --chown=nodejs:nodejs /app/apps/nestjs-backend/package.json ./apps/nestjs-backend/
 
 # mv it is necessary
-COPY --from=builder --link --chown=nodejs:nodejs /app/packages/common-i18n/ ./packages/common-i18n/
+# NOTE: --link is intentionally omitted here (unlike the other COPY --chown
+# instructions in this stage): combined with --chown and a --from referring to
+# the "builder" stage (rather than "post-builder"), some BuildKit builders
+# (observed on Railway's build infrastructure) fail with
+# "failed to solve: invalid user index: -1". Dropping --link only affects
+# layer-caching characteristics of this single copy, not runtime behavior.
+COPY --from=builder --chown=nodejs:nodejs /app/packages/common-i18n/ ./packages/common-i18n/
 
 COPY --from=post-builder --link --chown=nodejs:nodejs /app/packages ./packages
 COPY --from=post-builder --link --chown=nodejs:nodejs /app/node_modules ./node_modules
