@@ -1,5 +1,5 @@
 ARG NODE_VERSION=22.18.0
-ARG BUILD_VERSION="1.0.0-alpha"
+ARG BUILD_VERSION="1.0.0-alpha-authz-automation"
 
 ###################################################################
 # Stage 1: Install all workspaces (dev)dependencies               #
