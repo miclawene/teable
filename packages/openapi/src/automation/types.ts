@@ -15,12 +15,20 @@ export const fieldConditionSchema = z.object({
 export const conditionGroupSchema: z.ZodType<{
   operator: 'and' | 'or';
   conditions: unknown[];
-}> = z.lazy(() =>
-  z.object({
-    operator: z.enum(['and', 'or']),
-    conditions: z.array(z.union([fieldConditionSchema, conditionGroupSchema])),
-  })
-);
+}> = z
+  .lazy(() =>
+    z.object({
+      operator: z.enum(['and', 'or']),
+      conditions: z.array(z.union([fieldConditionSchema, conditionGroupSchema])),
+    })
+  )
+  // zod-to-openapi cannot introspect z.lazy() schemas on its own (same
+  // limitation as packages/core's filter.ts); an explicit type hint here
+  // is required or OpenAPI schema generation throws at server bootstrap.
+  .meta({
+    type: 'object',
+    description: 'A tree of AND/OR field conditions gating whether a workflow run fires.',
+  });
 
 export type IConditionGroupRo = z.infer<typeof conditionGroupSchema>;
 
