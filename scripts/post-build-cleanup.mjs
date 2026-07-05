@@ -49,7 +49,10 @@ try {
   console.log('Deleted Next.js build cache.');
 
   const config = {
-    keepDirList: ['dist', 'node_modules', 'prisma'],
+    // 'scripts' must be kept: packages/db-main-prisma/scripts/run-prisma-command.mjs
+    // is invoked again by this same build stage's `prisma-generate` step,
+    // right after this cleanup runs.
+    keepDirList: ['dist', 'node_modules', 'prisma', 'scripts'],
     keepFileList: [
       'package.json',
       'pnpm-workspace.yaml',
