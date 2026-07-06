@@ -63,6 +63,7 @@ import { IDataDbRoutingOptions } from '../../../global/data-db-client-manager.se
 import { DatabaseRouter } from '../../../global/database-router.service';
 import type { IClsStore } from '../../../types/cls';
 import { Timing } from '../../../utils/timing';
+import { AuthorityMatrixService } from '../../authority-matrix/authority-matrix.service';
 import { FieldCalculationService } from '../../calculation/field-calculation.service';
 import type { IOpsMap } from '../../calculation/utils/compose-maps';
 import { GraphService } from '../../graph/graph.service';
@@ -140,7 +141,8 @@ export class FieldOpenApiService {
     @InjectModel('CUSTOM_KNEX') private readonly knex: Knex,
     @ThresholdConfig() private readonly thresholdConfig: IThresholdConfig,
     @InjectRecordQueryBuilder() private readonly recordQueryBuilder: IRecordQueryBuilder,
-    private readonly computedOrchestrator: ComputedOrchestratorService
+    private readonly computedOrchestrator: ComputedOrchestratorService,
+    private readonly authorityMatrixService: AuthorityMatrixService
   ) {}
 
   async planField(tableId: string, fieldId: string) {
@@ -561,7 +563,15 @@ export class FieldOpenApiService {
       filterHidden: query.filterHidden == null ? true : query.filterHidden,
     });
 
-    return fields.map((field) => {
+    // Authority Matrix: fields hidden for the current user's role/department
+    // must not appear in the field list at all, not just be excluded from
+    // record values, otherwise the grid still renders the column.
+    const enabledFieldIds = await this.authorityMatrixService.getEnabledFieldIds(tableId);
+    const visibleFields = enabledFieldIds
+      ? fields.filter((field) => enabledFieldIds.includes(field.id))
+      : fields;
+
+    return visibleFields.map((field) => {
       if (field.isMultipleCellValue !== false) {
         return field;
       }
