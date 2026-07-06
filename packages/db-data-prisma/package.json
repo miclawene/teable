@@ -50,6 +50,7 @@
     "dotenv-flow-cli": "1.1.1"
   },
   "devDependencies": {
+    "@teable/db-main-prisma": "workspace:^",
     "@teable/eslint-config-bases": "workspace:^",
     "@types/node": "22.18.0",
     "cross-env": "7.0.3",
