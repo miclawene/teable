@@ -9,10 +9,11 @@ import {
 } from '@teable/openapi';
 import type {
   IMemberSelectorDialogRef,
+  ISelectedDepartment,
   ISelectedMember,
-  MemberSelectorNodeType,
+  ISelectedUser,
 } from '@teable/sdk/components';
-import { MemberSelectorDialog } from '@teable/sdk/components';
+import { MemberSelectorDialog, MemberSelectorNodeType } from '@teable/sdk/components';
 import {
   Badge,
   Button,
@@ -32,7 +33,7 @@ import { Loader, Settings2 } from 'lucide-react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 const LEVEL_OPTIONS: { value: IFieldPermissionLevel; label: string }[] = [
   { value: 'hidden', label: 'Hidden' },
@@ -72,6 +73,37 @@ export function AuthorityMatrixPage() {
     return userDirectory?.users.find((user) => user.id === principalId)?.name ?? principalId;
   };
 
+  const toSelectedMember = useCallback(
+    (grant: { principalType: ITableAccessPrincipalType; principalId: string }): ISelectedMember => {
+      if (grant.principalType === 'department') {
+        const department = departments?.find((d) => d.id === grant.principalId);
+        return {
+          id: grant.principalId,
+          type: MemberSelectorNodeType.DEPARTMENT,
+          data: {
+            id: grant.principalId,
+            name: department?.name ?? grant.principalId,
+            pathName: department?.pathName,
+            type: MemberSelectorNodeType.DEPARTMENT,
+          },
+        } as ISelectedDepartment;
+      }
+      const user = userDirectory?.users.find((u) => u.id === grant.principalId);
+      return {
+        id: grant.principalId,
+        type: MemberSelectorNodeType.USER,
+        data: {
+          id: grant.principalId,
+          name: user?.name ?? grant.principalId,
+          email: user?.email ?? '',
+          avatar: user?.avatar,
+          type: MemberSelectorNodeType.USER,
+        },
+      } as ISelectedUser;
+    },
+    [departments, userDirectory]
+  );
+
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: authorityMatrixQueryKey(baseId) });
 
@@ -109,10 +141,20 @@ export function AuthorityMatrixPage() {
     ])
   );
 
-  const openAccessDialog = (tableId: string, grants: ISelectedMember[]) => {
+  const openAccessDialog = (tableId: string) => {
     setActiveTableId(tableId);
-    memberSelectorRef.current?.open(grants);
+    memberSelectorRef.current?.open();
   };
+
+  // MemberSelectorDialog's content only mounts once the dialog is actually
+  // open, so passing preselected members straight to the imperative .open()
+  // call races the mount and gets silently dropped. onLoadData is read by
+  // MemberContent from inside its own mount effect, so it always sees the
+  // current activeTableId's grants.
+  const onLoadAccessDialogData = useCallback(() => {
+    const table = data?.tables.find((t) => t.id === activeTableId);
+    return table?.accessGrants.map(toSelectedMember) ?? [];
+  }, [activeTableId, data, toSelectedMember]);
 
   return (
     <div className="h-full flex-col md:flex">
@@ -152,19 +194,7 @@ export function AuthorityMatrixPage() {
                       </Badge>
                     ))
                   )}
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    onClick={() =>
-                      openAccessDialog(
-                        table.id,
-                        table.accessGrants.map((grant) => ({
-                          id: grant.principalId,
-                          type: grant.principalType as MemberSelectorNodeType,
-                        })) as ISelectedMember[]
-                      )
-                    }
-                  >
+                  <Button size="xs" variant="outline" onClick={() => openAccessDialog(table.id)}>
                     <Settings2 className="mr-1 size-3.5" />
                     Manage access
                   </Button>
@@ -240,6 +270,7 @@ export function AuthorityMatrixPage() {
       <MemberSelectorDialog
         ref={memberSelectorRef}
         header="Manage table access"
+        onLoadData={onLoadAccessDialogData}
         onConfirm={(members) => {
           if (activeTableId) {
             setTableAccess({ tableId: activeTableId, members });
