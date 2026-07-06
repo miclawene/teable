@@ -7,10 +7,10 @@
   "exports": {
     ".": "./dist"
   },
-  "homepage": "https://github.com/teableio/teable",
+  "homepage": "https://github.com/miclawene/teable",
   "repository": {
     "type": "git",
-    "url": "https://github.com/teableio/teable",
+    "url": "https://github.com/miclawene/teable",
     "directory": "apps/nestjs-backend"
   },
   "author": {

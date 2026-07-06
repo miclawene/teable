@@ -3,10 +3,10 @@
   "version": "1.10.0",
   "license": "MIT",
   "private": true,
-  "homepage": "https://github.com/teableio/teable",
+  "homepage": "https://github.com/miclawene/teable",
   "repository": {
     "type": "git",
-    "url": "https://github.com/teableio/teable",
+    "url": "https://github.com/miclawene/teable",
     "directory": "packages/eslint-config-bases"
   },
   "publishConfig": {

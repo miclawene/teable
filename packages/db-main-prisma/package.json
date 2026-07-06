@@ -2,14 +2,14 @@
   "name": "@teable/db-main-prisma",
   "version": "1.10.0",
   "license": "MIT",
-  "homepage": "https://github.com/teableio/teable",
+  "homepage": "https://github.com/miclawene/teable",
   "private": true,
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/teableio/teable",
+    "url": "https://github.com/miclawene/teable",
     "directory": "packages/db-main-prisma"
   },
   "author": {
