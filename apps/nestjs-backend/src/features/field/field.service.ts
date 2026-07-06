@@ -41,6 +41,7 @@ import type { IClsStore } from '../../types/cls';
 import { handleDBValidationErrors } from '../../utils/db-validation-error';
 import { isNotHiddenField } from '../../utils/is-not-hidden-field';
 import { convertNameToValidCharacter } from '../../utils/name-conversion';
+import { AuthorityMatrixService } from '../authority-matrix/authority-matrix.service';
 import { BatchService } from '../calculation/batch.service';
 
 import { DataLoaderService } from '../data-loader/data-loader.service';
@@ -73,7 +74,8 @@ export class FieldService implements IReadonlyAdapterService {
 
     private readonly formulaFieldService: FormulaFieldService,
     private readonly linkFieldQueryService: LinkFieldQueryService,
-    private readonly tableDomainQueryService: TableDomainQueryService
+    private readonly tableDomainQueryService: TableDomainQueryService,
+    private readonly authorityMatrixService: AuthorityMatrixService
   ) {}
 
   private invalidateFieldLoader(tableIds: string | string[]) {
@@ -1458,8 +1460,15 @@ export class FieldService implements IReadonlyAdapterService {
   }
 
   async getSnapshotBulk(tableId: string, ids: string[]): Promise<ISnapshotBase<IFieldVo>[]> {
+    // Authority Matrix: this feeds the realtime (ShareDB) sync path, a
+    // separate route from FieldOpenApiService.getFields — fields hidden for
+    // the current user must be excluded here too, or they reappear via the
+    // websocket after the initial (correctly filtered) page load.
+    const enabledFieldIds = await this.authorityMatrixService.getEnabledFieldIds(tableId);
+    const visibleIds = enabledFieldIds ? ids.filter((id) => enabledFieldIds.includes(id)) : ids;
+
     const fieldRaws = await this.prismaService.txClient().field.findMany({
-      where: { tableId, id: { in: ids } },
+      where: { tableId, id: { in: visibleIds } },
     });
     const fields = fieldRaws.map((field) => rawField2FieldObj(field));
 
@@ -1473,13 +1482,17 @@ export class FieldService implements IReadonlyAdapterService {
           data: omit(fields[i], ['meta']) as IFieldVo,
         };
       })
-      .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id));
+      .sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
   }
 
   async getDocIdsByQuery(tableId: string, query: IGetFieldsQuery) {
     const result = await this.getFieldsByQuery(tableId, query);
+    const enabledFieldIds = await this.authorityMatrixService.getEnabledFieldIds(tableId);
+    const visibleFields = enabledFieldIds
+      ? result.filter((field) => enabledFieldIds.includes(field.id))
+      : result;
     return {
-      ids: result.map((field) => field.id),
+      ids: visibleFields.map((field) => field.id),
     };
   }
 
