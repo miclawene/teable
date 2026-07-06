@@ -27,6 +27,8 @@ export enum IdPrefix {
   FieldRolePermission = 'frp',
   Department = 'dep',
   DepartmentMember = 'dpm',
+  TableAccessGrant = 'tag',
+  FieldPrincipalPermission = 'fpp',
 
   User = 'usr',
   Account = 'aco',
@@ -177,6 +179,14 @@ export function generateDepartmentId() {
 
 export function generateDepartmentMemberId() {
   return IdPrefix.DepartmentMember + getRandomString(16);
+}
+
+export function generateTableAccessGrantId() {
+  return IdPrefix.TableAccessGrant + getRandomString(16);
+}
+
+export function generateFieldPrincipalPermissionId() {
+  return IdPrefix.FieldPrincipalPermission + getRandomString(16);
 }
 
 export function generateUserId() {

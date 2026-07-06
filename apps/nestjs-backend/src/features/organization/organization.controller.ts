@@ -15,8 +15,8 @@ import {
   type IOrganizationMeVo,
 } from '@teable/openapi';
 import { ClsService } from 'nestjs-cls';
-import { ZodValidationPipe } from '../../zod.validation.pipe';
 import type { IClsStore } from '../../types/cls';
+import { ZodValidationPipe } from '../../zod.validation.pipe';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { OrganizationService } from './organization.service';
 

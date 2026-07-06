@@ -104,7 +104,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_TOKEN_STRATEGY_N
     this.cls.set('user.name', user.name);
     this.cls.set('user.email', user.email);
     this.cls.set('user.isAdmin', user.isAdmin);
-    this.cls.set('organization', await this.organizationService.getUserOrganizationContext(user.id));
+    this.cls.set(
+      'organization',
+      await this.organizationService.getUserOrganizationContext(user.id)
+    );
     return pickUserMe(user);
   }
 }

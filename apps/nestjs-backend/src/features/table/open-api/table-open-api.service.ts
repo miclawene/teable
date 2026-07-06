@@ -28,14 +28,13 @@ import { PrismaService, ProvisionState } from '@teable/db-main-prisma';
 import type {
   ICreateRecordsRo,
   ICreateTableRo,
-  ICreateTableWithDefault,
   IDuplicateTableRo,
   ITableFullVo,
   ITablePermissionVo,
   ITableVo,
   IUpdateOrderRo,
 } from '@teable/openapi';
-import { CreateRecordAction, ResourceType } from '@teable/openapi';
+import { CreateRecordAction, ResourceType, ICreateTableWithDefault } from '@teable/openapi';
 import { nanoid } from 'nanoid';
 import { ClsService } from 'nestjs-cls';
 import { ThresholdConfig, IThresholdConfig } from '../../../configs/threshold.config';
@@ -60,6 +59,7 @@ import { createFieldInstanceByVo } from '../../field/model/factory';
 import { FieldOpenApiService } from '../../field/open-api/field-open-api.service';
 import { RecordOpenApiService } from '../../record/open-api/record-open-api.service';
 import { RecordService } from '../../record/record.service';
+import { TableAccessService } from '../../table-access/table-access.service';
 import { ViewOpenApiService } from '../../view/open-api/view-open-api.service';
 import { TableDuplicateService } from '../table-duplicate.service';
 import { TableService } from '../table.service';
@@ -80,6 +80,7 @@ export class TableOpenApiService {
     private readonly fieldCreatingService: FieldCreatingService,
     private readonly fieldSupplementService: FieldSupplementService,
     private readonly permissionService: PermissionService,
+    private readonly tableAccessService: TableAccessService,
     private readonly tableDuplicateService: TableDuplicateService,
     private readonly batchService: BatchService,
     @InjectDbProvider() private readonly dbProvider: IDbProvider,
@@ -376,7 +377,7 @@ export class TableOpenApiService {
   }
 
   async getTables(baseId: string, includeTableIds?: string[]): Promise<ITableVo[]> {
-    const tablesMeta = await this.prismaService.txClient().tableMeta.findMany({
+    const allTablesMeta = await this.prismaService.txClient().tableMeta.findMany({
       orderBy: { order: 'asc' },
       where: {
         baseId,
@@ -385,6 +386,13 @@ export class TableOpenApiService {
         id: includeTableIds ? { in: includeTableIds } : undefined,
       },
     });
+    const accessibleTableIds = await this.getAccessibleTableIds(
+      baseId,
+      allTablesMeta.map((tableMeta: { id: string }) => tableMeta.id)
+    );
+    const tablesMeta = allTablesMeta.filter((tableMeta: { id: string }) =>
+      accessibleTableIds.has(tableMeta.id)
+    );
     const tableIds = tablesMeta.map((tableMeta) => tableMeta.id);
     const tableDefaultViewIds = await this.tableService.getTableDefaultViewId(tableIds);
     return tablesMeta.map((tableMeta, i) => {
@@ -409,6 +417,24 @@ export class TableOpenApiService {
         defaultViewId,
       };
     });
+  }
+
+  /**
+   * Base owners/creators always see every table (same bypass as
+   * PermissionService.getPermissionByTableId); everyone else is filtered by
+   * TableAccessGrant, which defaults open when a table has no grants.
+   */
+  private async getAccessibleTableIds(baseId: string, tableIds: string[]): Promise<Set<string>> {
+    const permissions = await this.permissionService.getPermissionByBaseId(baseId);
+    if (permissions.includes('base|authority_matrix_config')) {
+      return new Set(tableIds);
+    }
+    const principals = this.tableAccessService.getCurrentPrincipals();
+    const accessibleTableIds = await this.tableAccessService.filterAccessibleTableIds(
+      tableIds,
+      principals
+    );
+    return new Set(accessibleTableIds);
   }
 
   async detachLink(tableId: string) {

@@ -20,6 +20,7 @@ import { getMaxLevelRole } from '../../utils/get-max-level-role';
 import { PolicyEngineService } from '../authz/policy-engine.service';
 import { CollaboratorModel } from '../model/collaborator';
 import { TemplateModel } from '../model/template';
+import { TableAccessService } from '../table-access/table-access.service';
 
 interface IBaseNodeCacheItem {
   id: string;
@@ -58,7 +59,8 @@ export class PermissionService {
     private readonly collaboratorModel: CollaboratorModel,
     private readonly templateModel: TemplateModel,
     private readonly jwtService: JwtService,
-    private readonly policyEngineService: PolicyEngineService
+    private readonly policyEngineService: PolicyEngineService,
+    private readonly tableAccessService: TableAccessService
   ) {}
 
   private getDepartmentIds() {
@@ -401,7 +403,29 @@ export class PermissionService {
 
   private async getPermissionByTableId(tableId: string, includeInactiveResource?: boolean) {
     const baseId = (await this.getUpperIdByTableId(tableId, includeInactiveResource)).baseId;
-    return this.getPermissionByBaseId(baseId, includeInactiveResource);
+    const permissions = await this.getPermissionByBaseId(baseId, includeInactiveResource);
+    // Base owners/creators (the only roles allowed to configure the authority
+    // matrix) always bypass table-access grants, so they can't lock themselves
+    // out of a table they just restricted.
+    if (!permissions.includes('base|authority_matrix_config')) {
+      const principals = this.tableAccessService.getCurrentPrincipals();
+      const allowed = await this.tableAccessService.canAccessTable(tableId, principals);
+      if (!allowed) {
+        throw new CustomHttpException(
+          `You are not allowed to access table ${tableId}`,
+          HttpErrorCode.RESTRICTED_RESOURCE,
+          {
+            localization: {
+              i18nKey: 'httpErrors.permission.notAllowedTables',
+              context: {
+                tableIds: tableId,
+              },
+            },
+          }
+        );
+      }
+    }
+    return permissions;
   }
 
   async getPermissionsByResourceId(resourceId: string, includeInactiveResource?: boolean) {

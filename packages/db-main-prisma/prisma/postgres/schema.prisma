@@ -820,6 +820,46 @@ model DepartmentMember {
   @@map("department_member")
 }
 
+// Per-table visibility grant. A table with no grants stays visible to every
+// base collaborator (unchanged default behavior); the moment at least one
+// grant exists for a table, it becomes visible only to the listed
+// departments/users (base Owner/Creator always bypass, see
+// TableAccessService).
+model TableAccessGrant {
+  id            String   @id @default(cuid())
+  baseId        String   @map("base_id")
+  tableId       String   @map("table_id")
+  principalType String   @map("principal_type") // "user" | "department"
+  principalId   String   @map("principal_id")
+  createdBy     String   @map("created_by")
+  createdTime   DateTime @default(now()) @map("created_time")
+
+  @@unique([tableId, principalType, principalId])
+  @@index([tableId])
+  @@map("table_access_grant")
+}
+
+// Field visibility scoped to a specific department or individual employee,
+// as an alternative to (and taking precedence over) the role-based
+// FieldRolePermission matrix above.
+model FieldPrincipalPermission {
+  id               String    @id @default(cuid())
+  baseId           String    @map("base_id")
+  tableId          String    @map("table_id")
+  fieldId          String    @map("field_id")
+  principalType    String    @map("principal_type") // "user" | "department"
+  principalId      String    @map("principal_id")
+  level            String    @default("editable") // "hidden" | "readonly" | "editable"
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  lastModifiedBy   String?   @map("last_modified_by")
+
+  @@unique([fieldId, principalType, principalId])
+  @@index([tableId])
+  @@map("field_principal_permission")
+}
+
 // Decoupled automation engine (@teable/automation-engine) storage.
 model Workflow {
   id               String    @id @default(cuid())

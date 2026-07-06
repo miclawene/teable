@@ -16,6 +16,7 @@ import { AuthorityMatrixModule } from './features/authority-matrix/authority-mat
 import { AutomationModule } from './features/automation/automation.module';
 import { BaseModule } from './features/base/base.module';
 import { BaseNodeModule } from './features/base-node/base-node.module';
+import { BaseShareModule } from './features/base-share/base-share.module';
 import { BuiltinAssetsInitModule } from './features/builtin-assets-init';
 import { CanaryModule } from './features/canary';
 import { ChatModule } from './features/chat/chat.module';
@@ -42,9 +43,9 @@ import { PluginPanelModule } from './features/plugin-panel/plugin-panel.module';
 import { SelectionModule } from './features/selection/selection.module';
 import { AdminOpenApiModule } from './features/setting/open-api/admin-open-api.module';
 import { SettingOpenApiModule } from './features/setting/open-api/setting-open-api.module';
-import { BaseShareModule } from './features/base-share/base-share.module';
 import { ShareModule } from './features/share/share.module';
 import { SpaceModule } from './features/space/space.module';
+import { TableAccessModule } from './features/table-access/table-access.module';
 import { TemplateOpenApiModule } from './features/template/template-open-api.module';
 import { TrashModule } from './features/trash/trash.module';
 import { UndoRedoModule } from './features/undo-redo/open-api/undo-redo.module';
@@ -100,6 +101,7 @@ export const appModules = {
     DashboardModule,
     AutomationModule,
     AuthorityMatrixModule,
+    TableAccessModule,
     CommentOpenApiModule,
     OrganizationModule,
     AiModule,

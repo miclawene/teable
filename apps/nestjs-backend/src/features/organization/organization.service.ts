@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  HttpErrorCode,
-  generateDepartmentId,
-  generateDepartmentMemberId,
-} from '@teable/core';
+import { HttpErrorCode, generateDepartmentId, generateDepartmentMemberId } from '@teable/core';
 import { PrismaService } from '@teable/db-main-prisma';
 import type {
   IGetDepartmentListVo,
