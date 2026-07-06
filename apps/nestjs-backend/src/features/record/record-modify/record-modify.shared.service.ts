@@ -21,6 +21,7 @@ import { CustomHttpException } from '../../../custom.exception';
 import type { IClsStore } from '../../../types/cls';
 import { Timing } from '../../../utils/timing';
 import { AttachmentsStorageService } from '../../attachments/attachments-storage.service';
+import { AuthorityMatrixService } from '../../authority-matrix/authority-matrix.service';
 import type { ICellContext, ICellChange } from '../../calculation/utils/changes';
 import { formatChangesToOps, mergeDuplicateChange } from '../../calculation/utils/changes';
 import { CollaboratorService } from '../../collaborator/collaborator.service';
@@ -45,7 +46,8 @@ export class RecordModifySharedService {
     private readonly attachmentsStorageService: AttachmentsStorageService,
     private readonly collaboratorService: CollaboratorService,
     private readonly cls: ClsService<IClsStore>,
-    private readonly dataLoaderService: DataLoaderService
+    private readonly dataLoaderService: DataLoaderService,
+    private readonly authorityMatrixService: AuthorityMatrixService
   ) {}
 
   private buildMissingFieldsMessage(missedFields: string[]): string {
@@ -153,6 +155,22 @@ export class RecordModifySharedService {
       fieldKeyType,
       ignoreMissingFields
     );
+
+    const nonEditableFieldIds = await this.authorityMatrixService.getNonEditableFieldIds(table.id);
+    if (nonEditableFieldIds?.size) {
+      const restrictedField = effectFieldInstance.find((field) => nonEditableFieldIds.has(field.id));
+      if (restrictedField) {
+        throw new CustomHttpException(
+          `Your role is not allowed to edit field "${restrictedField.name}"`,
+          HttpErrorCode.RESTRICTED_RESOURCE,
+          {
+            localization: {
+              i18nKey: 'httpErrors.permission.notAllowedOperation',
+            },
+          }
+        );
+      }
+    }
 
     const newRecordsFields: Record<string, unknown>[] = recordsFields.map(() => ({}));
     for (const field of effectFieldInstance) {

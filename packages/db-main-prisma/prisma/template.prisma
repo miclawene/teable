@@ -708,6 +708,25 @@ model RoleDefinition {
   @@map("role_definition")
 }
 
+// Field-level "authority matrix": per (field, role) access level, layered on
+// top of the base-level 5-role system. Missing rows default to "editable" —
+// zero behavioral change for bases that never configure the matrix.
+model FieldRolePermission {
+  id               String    @id @default(cuid())
+  baseId           String    @map("base_id")
+  fieldId          String    @map("field_id")
+  roleName         String    @map("role_name")
+  level            String    @default("editable") // "hidden" | "readonly" | "editable"
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  lastModifiedBy   String?   @map("last_modified_by")
+
+  @@unique([fieldId, roleName])
+  @@index([baseId])
+  @@map("field_role_permission")
+}
+
 // Decoupled automation engine (@teable/automation-engine) storage.
 model Workflow {
   id               String    @id @default(cuid())

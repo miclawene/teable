@@ -1,5 +1,5 @@
 import { InMemoryPolicyStore } from './in-memory-policy-store';
-import type { IActionName, IPolicyStore, IRoleName } from './types';
+import type { IActionName, IPolicyStore, IRoleDefinition, IRoleName } from './types';
 
 /**
  * Framework-agnostic facade over a PolicyStore. Signatures mirror
@@ -44,5 +44,9 @@ export class PolicyEngine {
       .listRoleDefinitions()
       .sort((a, b) => a.rank - b.rank)
       .map((definition) => definition.name);
+  }
+
+  getRoleDefinition(role: IRoleName): IRoleDefinition | undefined {
+    return this.store.getRoleDefinition(role);
   }
 }

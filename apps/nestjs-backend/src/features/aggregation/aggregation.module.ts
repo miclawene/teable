@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { DbProvider } from '../../db-provider/db.provider';
+import { AuthorityMatrixModule } from '../authority-matrix/authority-matrix.module';
 import { RecordQueryBuilderModule } from '../record/query-builder';
 import { RecordPermissionService } from '../record/record-permission.service';
 import { RecordModule } from '../record/record.module';
@@ -8,7 +9,7 @@ import { AggregationService } from './aggregation.service';
 import { AGGREGATION_SERVICE_SYMBOL } from './aggregation.service.symbol';
 
 @Module({
-  imports: [RecordModule, RecordQueryBuilderModule],
+  imports: [RecordModule, RecordQueryBuilderModule, AuthorityMatrixModule],
   providers: [
     DbProvider,
     TableIndexService,

@@ -39,6 +39,7 @@ export * from './plugin-context-menu';
 export * from './template';
 export * from './query';
 export * from './automation';
+export * from './authority-matrix';
 export * from './mail';
 export * from './formula';
 export * from './unsubscribe';

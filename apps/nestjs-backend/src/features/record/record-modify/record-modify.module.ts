@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AttachmentsStorageModule } from '../../attachments/attachments-storage.module';
+import { AuthorityMatrixModule } from '../../authority-matrix/authority-matrix.module';
 import { CalculationModule } from '../../calculation/calculation.module';
 import { CollaboratorModule } from '../../collaborator/collaborator.module';
 import { DataLoaderModule } from '../../data-loader/data-loader.module';
@@ -19,6 +20,7 @@ import { RecordUpdateService } from './record-update.service';
 @Module({
   imports: [
     RecordModule,
+    AuthorityMatrixModule,
     CalculationModule,
     FieldCalculateModule,
     ViewOpenApiModule,

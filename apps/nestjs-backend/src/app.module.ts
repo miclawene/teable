@@ -12,6 +12,7 @@ import { AggregationOpenApiModule } from './features/aggregation/open-api/aggreg
 import { AiModule } from './features/ai/ai.module';
 import { AttachmentsModule } from './features/attachments/attachments.module';
 import { AuthModule } from './features/auth/auth.module';
+import { AuthorityMatrixModule } from './features/authority-matrix/authority-matrix.module';
 import { AutomationModule } from './features/automation/automation.module';
 import { BaseModule } from './features/base/base.module';
 import { BaseNodeModule } from './features/base-node/base-node.module';
@@ -98,6 +99,7 @@ export const appModules = {
     TrashModule,
     DashboardModule,
     AutomationModule,
+    AuthorityMatrixModule,
     CommentOpenApiModule,
     OrganizationModule,
     AiModule,

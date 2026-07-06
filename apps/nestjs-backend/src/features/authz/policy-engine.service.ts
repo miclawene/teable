@@ -1,5 +1,5 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
-import type { IActionName, IRoleName } from '@teable/authz';
+import type { IActionName, IRoleDefinition, IRoleName } from '@teable/authz';
 import { PolicyEngine } from '@teable/authz';
 import { PrismaPolicyStore } from './prisma-policy-store';
 
@@ -43,5 +43,9 @@ export class PolicyEngineService implements OnModuleInit {
 
   listRoles(): IRoleName[] {
     return this.engine.listRoles();
+  }
+
+  getRoleDefinition(role: IRoleName): IRoleDefinition | undefined {
+    return this.engine.getRoleDefinition(role);
   }
 }

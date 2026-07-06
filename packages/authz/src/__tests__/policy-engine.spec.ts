@@ -33,4 +33,17 @@ describe('PolicyEngine with a custom PolicyStore', () => {
     const engine = new PolicyEngine(new InMemoryPolicyStore([], {}));
     expect(engine.canManageRole('owner', 'viewer')).toBe(false);
   });
+
+  it('exposes the full role definition, not just its name', () => {
+    const store = new InMemoryPolicyStore([], {});
+    store.upsertRole({ name: 'auditor', rank: 10, isSystem: false }, []);
+    const engine = new PolicyEngine(store);
+
+    expect(engine.getRoleDefinition('auditor')).toEqual({
+      name: 'auditor',
+      rank: 10,
+      isSystem: false,
+    });
+    expect(engine.getRoleDefinition('unknown-role')).toBeUndefined();
+  });
 });
