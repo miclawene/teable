@@ -727,6 +727,33 @@ model FieldRolePermission {
   @@map("field_role_permission")
 }
 
+// User groups ("organization/department"), instance-wide (not scoped to a
+// space/base). A department can be invited as a collaborator (principalType
+// "Department") on a space/base, and its role applies to every member.
+model Department {
+  id               String    @id @default(cuid())
+  name             String
+  parentId         String?   @map("parent_id")
+  createdBy        String    @map("created_by")
+  createdTime      DateTime  @default(now()) @map("created_time")
+  lastModifiedTime DateTime? @updatedAt @map("last_modified_time")
+  deletedTime      DateTime? @map("deleted_time")
+
+  @@index([parentId])
+  @@map("department")
+}
+
+model DepartmentMember {
+  id           String   @id @default(cuid())
+  departmentId String   @map("department_id")
+  userId       String   @map("user_id")
+  createdTime  DateTime @default(now()) @map("created_time")
+
+  @@unique([departmentId, userId])
+  @@index([userId])
+  @@map("department_member")
+}
+
 // Decoupled automation engine (@teable/automation-engine) storage.
 model Workflow {
   id               String    @id @default(cuid())

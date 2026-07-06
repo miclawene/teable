@@ -9,6 +9,7 @@ import { AuthConfig } from '../../../configs/auth.config';
 import { CustomHttpException } from '../../../custom.exception';
 import type { IClsStore } from '../../../types/cls';
 import { AccessTokenService } from '../../access-token/access-token.service';
+import { OrganizationService } from '../../organization/organization.service';
 import { UserService } from '../../user/user.service';
 import { pickUserMe } from '../utils';
 import { PassportAccessTokenStrategy } from './access-token.passport';
@@ -20,7 +21,8 @@ export class AccessTokenStrategy extends PassportStrategy(PassportAccessTokenStr
     @AuthConfig() readonly config: ConfigType<typeof authConfig>,
     private readonly userService: UserService,
     private readonly cls: ClsService<IClsStore>,
-    private readonly accessTokenService: AccessTokenService
+    private readonly accessTokenService: AccessTokenService,
+    private readonly organizationService: OrganizationService
   ) {
     super({
       accessTokenFromRequest: fromExtractors([fromAuthHeaderAsBearerToken]),
@@ -54,6 +56,7 @@ export class AccessTokenStrategy extends PassportStrategy(PassportAccessTokenStr
     this.cls.set('user.email', user.email);
     this.cls.set('user.isAdmin', user.isAdmin);
     this.cls.set('accessTokenId', accessTokenId);
+    this.cls.set('organization', await this.organizationService.getUserOrganizationContext(user.id));
     return pickUserMe(user);
   }
 }

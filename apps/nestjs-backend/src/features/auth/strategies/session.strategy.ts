@@ -5,6 +5,7 @@ import { ClsService } from 'nestjs-cls';
 import type { authConfig } from '../../../configs/auth.config';
 import { AuthConfig } from '../../../configs/auth.config';
 import type { IClsStore } from '../../../types/cls';
+import { OrganizationService } from '../../organization/organization.service';
 import { UserService } from '../../user/user.service';
 import { pickUserMe } from '../utils';
 import { PassportSessionStrategy } from './session.passport';
@@ -15,7 +16,8 @@ export class SessionStrategy extends PassportStrategy(PassportSessionStrategy) {
   constructor(
     @AuthConfig() readonly config: ConfigType<typeof authConfig>,
     private readonly userService: UserService,
-    private readonly cls: ClsService<IClsStore>
+    private readonly cls: ClsService<IClsStore>,
+    private readonly organizationService: OrganizationService
   ) {
     super();
   }
@@ -37,6 +39,7 @@ export class SessionStrategy extends PassportStrategy(PassportSessionStrategy) {
     this.cls.set('user.name', user.name);
     this.cls.set('user.email', user.email);
     this.cls.set('user.isAdmin', user.isAdmin);
+    this.cls.set('organization', await this.organizationService.getUserOrganizationContext(user.id));
     return pickUserMe(user);
   }
 }

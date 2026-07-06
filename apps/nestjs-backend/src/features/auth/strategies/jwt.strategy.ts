@@ -8,6 +8,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { authConfig } from '../../../configs/auth.config';
 import { AuthConfig } from '../../../configs/auth.config';
 import type { IClsStore } from '../../../types/cls';
+import { OrganizationService } from '../../organization/organization.service';
 import { UserService } from '../../user/user.service';
 import { pickUserMe } from '../utils';
 import { JWT_TOKEN_STRATEGY_NAME } from './constant';
@@ -19,7 +20,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_TOKEN_STRATEGY_N
   constructor(
     @AuthConfig() readonly config: ConfigType<typeof authConfig>,
     private readonly userService: UserService,
-    private readonly cls: ClsService<IClsStore>
+    private readonly cls: ClsService<IClsStore>,
+    private readonly organizationService: OrganizationService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -58,6 +60,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_TOKEN_STRATEGY_N
       this.cls.set('user.name', user.name);
       this.cls.set('user.email', user.email);
       this.cls.set('user.isAdmin', user.isAdmin);
+      this.cls.set(
+        'organization',
+        await this.organizationService.getUserOrganizationContext(user.id)
+      );
       return pickUserMe(user);
     }
 
@@ -98,6 +104,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_TOKEN_STRATEGY_N
     this.cls.set('user.name', user.name);
     this.cls.set('user.email', user.email);
     this.cls.set('user.isAdmin', user.isAdmin);
+    this.cls.set('organization', await this.organizationService.getUserOrganizationContext(user.id));
     return pickUserMe(user);
   }
 }

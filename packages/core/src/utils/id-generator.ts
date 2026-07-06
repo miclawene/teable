@@ -25,6 +25,8 @@ export enum IdPrefix {
   RolePolicy = 'rpo',
   RoleDefinition = 'rdf',
   FieldRolePermission = 'frp',
+  Department = 'dep',
+  DepartmentMember = 'dpm',
 
   User = 'usr',
   Account = 'aco',
@@ -167,6 +169,14 @@ export function generateRoleDefinitionId() {
 
 export function generateFieldRolePermissionId() {
   return IdPrefix.FieldRolePermission + getRandomString(16);
+}
+
+export function generateDepartmentId() {
+  return IdPrefix.Department + getRandomString(16);
+}
+
+export function generateDepartmentMemberId() {
+  return IdPrefix.DepartmentMember + getRandomString(16);
 }
 
 export function generateUserId() {

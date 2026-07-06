@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { authConfig, type IAuthConfig } from '../../configs/auth.config';
 import { AccessTokenModule } from '../access-token/access-token.module';
+import { OrganizationModule } from '../organization/organization.module';
 import { DeleteUserModule } from '../user/delete-user/delete-user.module';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
@@ -50,6 +51,7 @@ const CONDITIONAL_MODULE_TIMEOUT = process.env.CI ? 30000 : 5000;
       inject: [authConfig.KEY],
     }),
     DeleteUserModule,
+    OrganizationModule,
   ],
   providers: [
     AuthService,
